@@ -1,8 +1,8 @@
 # Statistical Computing
 Repository for Statistical Computing
 
-Simulations must include the following:    
-1) derivation
+### Simulations must include the following:    
+1) derivation   
 2) algorithm   
 3) simulation   
 4) analytical result (if possible)
