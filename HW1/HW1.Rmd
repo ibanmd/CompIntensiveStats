@@ -1,0 +1,29 @@
+---
+title: "Statistical Computing HW 1"
+author: "Mario Ibanez"
+date: "January 16, 2016"
+output: pdf_document
+---
+
+# Problem 3.2)   
+## Question
+If $x_0=3$ and
+$$
+x_n
+$$
+
+## Answer
+
+
+# Problem 3.5)   
+## Question
+
+
+## Answer
+
+
+# Problem 3.6)   
+## Question
+
+
+## Answer
