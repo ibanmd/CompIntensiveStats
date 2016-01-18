@@ -1,0 +1,201 @@
+---
+title: "Statistical Computing HW 1"
+author: "Mario Ibanez"
+date: "January 16, 2016"
+output: pdf_document
+---
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+library(knitr)
+```
+
+```{r}
+## Set seed
+set.seed(1234)
+```
+
+# Problem 3.2)
+
+## Question
+If $x_0=3$ and
+$$
+x_n = (5x_{n-1}+7) \;\; mod \; 200
+$$
+find $x_1,...x_{10}$.   
+
+## Answer
+The code below finds $x_1,...x_{10}$:
+```{r}
+# Create a dataframe to store the values
+df2 <- data.frame(x_i=c(0:10), equals=rep(0,11))
+
+# Initialize x0 = 3
+df2[1,2] = 3
+
+# Loop for x1 to x10
+for (i in 1:10){
+  df2[i+1, 2] = (5*df2[i, 2]+7) %% 200
+}
+```
+
+```{r results='asis'}
+# Print results
+kable(df2)
+```
+
+# Problem 3.5)   
+
+## Question
+Use simulation to approximate
+$$
+\int_{-2}^{2} e^{x+x^2} dx
+$$
+Compare answer with the exact answer if known.
+
+## Answer
+### 1) Derivation   
+A change of variables is needed.  Let:
+$$
+y = \frac{x+2}{4}
+$$
+This is a one to one (increasing) function that maps the interval $(-2,2)$ to $(0,1)$.  Then:
+\begin{align*}
+x &= 4y-2 \\
+dx &= 4 \; dy
+\end{align*}
+Substituting these values in the integral we get:
+$$
+\int_{-2}^{2} e^{x+x^2} dx = \int_0^1 e^{4y-2+(4y-2)^2}(4) dy
+$$
+Let:
+$$
+h(y) = e^{4y-2+(4y-2)^2}(4) dy
+$$
+Then:
+\begin{align*}
+\int_0^1 e^{4y-2+(4y-2)^2}(4) dy 
+&= \int_0^1 h(y) dy \\
+&= \int_0^1 h(y)(1) dy \\
+&= E(h(y)), \;\; Y \sim U(0,1)
+\end{align*}
+The final integral is then the expected value of $h(y)$, where $Y$ is a standard uniform random variable.   
+
+### 2) Algorithm
+
+1) Generate $y$ from $U(0,1)$
+2) Evaluate $h(y)$, store value
+3) Repeat (1) and (2) 100000 times
+4) Find the average of the 100000 values
+
+$\pagebreak$
+
+### 3) Simulation
+
+```{r}
+# initialize a vector of length 10000
+vector <- rep(0, 100000)
+
+# loop to generate y values and evalute h(y)
+for(i in 1:100000){
+  # generate random number from U(0,1)
+  y <- runif(1)
+  # evalute and store h(y)
+  vector[i] <- exp(4*y-2+(4*y-2)^2)*4
+}
+
+# compute the average
+average <- mean(vector)
+average
+```
+
+The average value of the 100000 $h(y)$ values is $`r average`$.
+
+### 4) Analytical Result
+
+To my knowledge, there is no simple way to integrate this function.  WolframAlpha provides an estimate of 93.1628 however.
+
+# Problem 3.6)   
+
+## Question
+Use simulation to approximate
+$$
+\int_{0}^{\infty} x(1+x^2)^{-2} dx
+$$
+Compare answer with the exact answer if known.
+
+## Answer
+### 1) Derivation
+First, it worthwhile to check that this integral converges.  This will be done in Part 4 of the answer, and it will be shown that it does in fact converge.  To use simulation, a change of variables is needed. Let:
+$$
+y = \frac{x}{x+1} = 1 - \frac{1}{x+1}
+$$
+This is a one to one (increasing) function that maps the interval $(0,\infty)$ to $(0,1)$.  Then:
+\begin{align*}
+x &= \frac{y}{1-y} \\
+dx &= \frac{1}{(1-y)^2} dy
+\end{align*}
+Then making the change of variables, we have:
+\begin{align*}
+\int_{0}^{\infty} x(1+x^2)^{-2} dx
+&= \int_{0}^{1} \frac{y}{1-y}\left(1+\left(\frac{y}{1-y}\right)^2\right)^{-2} \frac{1}{(1-y)^2} dy \\
+&= \int_{0}^{1} \frac{y}{(1-y)^3 (1+(\frac{y}{1-y})^2)^2} dy
+\end{align*}
+Then let:
+$$
+h(y) = \frac{y}{(1-y)^3 (1+(\frac{y}{1-y})^2)^2}
+$$
+Then:
+\begin{align*}
+\int_{0}^{1} \frac{y}{(1-y)^3 (1+(\frac{y}{1-y})^2)^2}
+&= \int_{0}^{1} h(y) dy \\
+&= \int_0^1 h(y)(1) dy \\
+&= E(h(y)), \;\; Y \sim U(0,1)
+\end{align*}
+The final integral is then the expected value of $h(y)$, where $Y$ is a standard uniform random variable. 
+
+### 2) Algorithm
+
+1) Generate $y$ from $U(0,1)$
+2) Evaluate $h(y)$, store value
+3) Repeat (1) and (2) 100000 times
+4) Find the average of the 100000 values
+
+### 3) Simulation
+
+```{r}
+# initialize a vector of length 10000
+vector <- rep(0, 100000)
+
+# loop to generate y values and evalute h(y)
+for(i in 1:100000){
+  # generate random number from U(0,1)
+  y <- runif(1)
+  # evalute and store h(y)
+  vector[i] <- y / ((1-y)^3 * (1+(y/(1-y))^2)^2)
+}
+
+# compute the average
+average <- mean(vector)
+average
+```
+
+The average value of the 100000 $h(y)$ values is $`r average`$.
+
+### 4) Analytical Result
+
+The exact value of the integral can be found (using a change of variable: $y=x^2$, $dy=2x\;dx$):
+
+\begin{align*}
+\int_{0}^{\infty} x(1+x^2)^{-2} dx
+&= \int_{0}^{\infty} \frac{x}{(1+x^2)^{2}} dx \\
+&= \frac{1}{2} \int_{0}^{\infty} \frac{2x}{(1+x^2)^{2}} dx \\
+&= \frac{1}{2} \int_0^\infty \frac{1}{(1+y)^{2}} dy \\
+&= -\frac{1}{2} \left[ \frac{1}{1+y} \right]^{\infty}_0 \\
+&= -\frac{1}{2} (0-1) \\
+&= \frac{1}{2}
+\end{align*}
+
+The exact value of the integral is $\frac{1}{2}$.
+
+
+
