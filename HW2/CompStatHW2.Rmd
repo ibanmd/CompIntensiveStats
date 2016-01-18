@@ -1,0 +1,68 @@
+---
+title: "Statistical Computing HW 2"
+author: "Mario Ibanez"
+date: "January 17, 2016"
+output: pdf_document
+---
+
+```{r}
+set.seed(1234)
+```
+
+# Problem 3.10)
+
+## Question
+Use simulation to approximate $cov(U,e^U)$ where $U$ is uniform on $(0,1)$.  Compare your approximation with the exact answer.
+
+## Answer
+### 1) Derivation
+Using the definition of covariance, we have:
+$$
+cov(U,e^U) = E(Ue^U)-E(U)E(e^U)
+$$
+No other derivation is needed.
+
+### 2) Algorithm
+1) Generate $u$ from $U(0,1)$
+2) Evaluate $Ue^U$, $U$, and $e^U$ as three separate values, store values
+3) Repeat (1) and (2) 10,000 times
+4) Find the average of each of the the 10,000 values, then find $E(Ue^U)-E(U)E(e^U)$
+
+### 3) Simulation
+
+```{r}
+# Initialize dataframe, 3 columns and 10,000 rows
+df <- data.frame(UeU=rep(0,10000),
+                 U=rep(0,10000),
+                 eU=rep(0,10000))
+# For loop to calcuate Ue^U, U, and e^U, and store values
+for(i in 1:10000){
+  U <- runif(1)
+  df[i,1] <- U*exp(U)
+  df[i,2] <- U
+  df[i,3] <- exp(U)
+}
+
+# Find column means, then perform final calculation
+covariance <- mean(df$UeU) - mean(df$U)*mean(df$eU)
+covariance
+```
+
+The estimated covariance is $`r covariance`$.
+
+### 4) Analytical Result
+The exact value of the covariance is:
+\begin{align*}
+cov(U,e^U) 
+&= E(Ue^U)-E(U)E(e^U) \\
+&= \int_0^1 Ue^U \; du - \left( \int_0^1 U \; du \right) \left( \int_0^1 e^U \; du \right) \\
+&= \left[ Ue^U - e^U \right]_0^1 - \left[\frac{1}{2}U^2 \right]_0^1 * \left[ e^U \right]_0^1 \\
+&= (e-e)-(0-1)-(1/2 - 0)(e-1) \\
+&= (3/2) - e/2 \\
+&\approx 0.1408591
+\end{align*}
+
+
+
+
+
