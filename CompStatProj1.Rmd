@@ -1,0 +1,6 @@
+---
+title: "Statistical Computing Project 1"
+author: "Mario Ibanez"
+date: "January 23, 2016"
+output: pdf_document
+---

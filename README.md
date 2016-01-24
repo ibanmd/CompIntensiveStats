@@ -1,3 +1,6 @@
+---
+output: pdf_document
+---
 # Statistical Computing
 Repository for Statistical Computing
 
@@ -16,3 +19,11 @@ Due: January 21st
 Ch.3) 10    
 Find the exact and simulated result.   
 use n=10,000
+
+## Project 1 
+Due: February 4th  
+make it uniform   
+answer the question (?)   
+
+## HW 3 
+Ch.5) 1, 3
