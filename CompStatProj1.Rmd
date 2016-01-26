@@ -4,3 +4,102 @@ author: "Mario Ibanez"
 date: "January 23, 2016"
 output: pdf_document
 ---
+
+```{r}
+N <- 10
+library(knitr)
+```
+
+```{r}
+# Generates n values from standard uniform with seed x0
+uniform_generator <- function(n, seed, sorted=TRUE){
+  # assignments to save time
+  a <- 7^5
+  mod <- 2^31 - 1
+  # initialize vector of 0's
+  vector <- c(rep(0, times=n))
+  # assign seed
+  vector[1] <- seed %% mod
+  # calculate rest of the values
+  for(i in 2:n){
+    vector[i] <- (a * vector[i-1]) %% mod
+  }
+  # divide by the mod value
+  vector <- vector/mod
+  # return value, default is sorted
+  if(sorted==FALSE){
+    return (vector)
+  } else{
+    return (sort(vector))
+  }
+}
+```
+
+```{r}
+## plots the Sn(x) function (might need to double check this)
+## woah this isn't snx .....
+
+#snx <- sort(uniform_generator(N, 200000000))
+#x <- seq.int(1,N) / N
+#plot(snx ~ x, type="S")
+
+# real snx
+## snx functon values
+snx_y_values <- seq.int(1, N)/N
+random_nums <- sort(uniform_generator(N, seed = 200000000))
+
+func_values <- data.frame(random_nums = random_nums,
+                          low_y = seq.int(0, N-1)/N,
+                          high_y = seq.int(1, N)/N)
+func_values$low_diff = abs(func_values$random_nums - func_values$low_y)
+func_values$high_diff = abs(func_values$random_nums - func_values$high_y)
+kable(func_values)
+supx <- max(max(func_values$low_diff), max(func_values$high_diff))
+supx
+## this may or may not make sense to put into the k test, or make
+## the k test call this and put this in some other function
+
+plot(snx_y_values ~ random_nums, type="s", xlim=c(0,1), ylim=c(0,1))
+points(random_nums, snx_y_values)
+abline(0,1)
+
+## notes: need to add (0,0) to this plot?
+# add labels, legend, colors, and filled in and open points
+```
+
+```{r eval=FALSE}
+# K test for uniform
+kTest <- function(random_numbers){
+  random_numbers <- sort(random_numbers)
+  
+  
+  
+  if(){
+    return (TRUE)
+  } else {
+    return (FALSE)
+  }
+}
+```
+
+
+```{r}
+# plot histograms to show distribution of random numbers, look for gaps
+hist(uniform_generator(1000, 2), breaks=seq.int(0,1000)/1000)
+hist(uniform_generator(1000, 3), breaks=seq.int(0,1000)/1000)
+hist(uniform_generator(1000, 4), breaks=seq.int(0,1000)/1000)
+```
+
+```{r eval=FALSE}
+hist(uniform_generator(1000, 5), breaks=seq.int(0,1000)/1000)
+hist(uniform_generator(1000, 6), breaks=seq.int(0,1000)/1000)
+hist(uniform_generator(1000, 7), breaks=seq.int(0,1000)/1000)
+```
+
+# part 2
+- what percentage of the 2 billion seeds fail the test when n=1000 ?  
+(take a random (as large as possible) sample and make a confidence inteval for this percentage)
+
+
+
+

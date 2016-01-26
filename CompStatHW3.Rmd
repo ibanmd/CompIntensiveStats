@@ -4,3 +4,41 @@ author: "Mario Ibanez"
 date: "January 23, 2016"
 output: pdf_document
 ---
+
+# Problem 5.1)
+## Question
+Give a method for generating a random variable having density function
+$$
+f(x) = e^x / (e-1), \;\; 0 \le x \le 1
+$$
+
+## Answer
+
+### Derivation
+
+
+### Algorithm
+
+
+### Program
+
+
+
+# Problem 5.3)
+## Question
+Use the inverse transform method to generate a random variable having distribution function
+$$
+F(x) = \frac{x^2 + x}{2}, \;\; 0 \le x \le 1
+$$
+
+## Answer
+
+### Derivation
+
+
+### Algorithm
+
+
+### Program
+
+
