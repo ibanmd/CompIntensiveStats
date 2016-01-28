@@ -4,96 +4,49 @@ author: "Mario Ibanez"
 date: "January 23, 2016"
 output: pdf_document
 ---
-
+Constants
 ```{r}
-N <- 10
+# knitr library
 library(knitr)
+comparison_value <- 1.6276/sqrt(1000)
 ```
-
+Generator
 ```{r}
-# Generates n values from standard uniform with seed x0
-uniform_generator <- function(n, seed, sorted=TRUE){
-  # assignments to save time
-  a <- 7^5
-  mod <- 2^31 - 1
-  # initialize vector of 0's
-  vector <- c(rep(0, times=n))
-  # assign seed
+# Generates 1000 values from standard normal with given seed
+generator <- function(seed, multiplier=16807, mod=2147483647, N=1000, sorted=TRUE){
+  # Initialize vector
+  vector <- c(rep(0, times=N))
   vector[1] <- seed %% mod
-  # calculate rest of the values
-  for(i in 2:n){
-    vector[i] <- (a * vector[i-1]) %% mod
+  # Loop to create rest of the vector
+  for(i in 2:N){
+    vector[i] <- (multiplier * vector[i-1]) %% mod
   }
-  # divide by the mod value
-  vector <- vector/mod
-  # return value, default is sorted
-  if(sorted==FALSE){
-    return (vector)
-  } else{
-    return (sort(vector))
-  }
+  # Divide values so they're between (0,1), return
+  vector <- sort(vector/mod)
+  return(vector)
 }
 ```
-
+Comparison Dataframe
 ```{r}
-## plots the Sn(x) function (might need to double check this)
-## woah this isn't snx .....
-
-#snx <- sort(uniform_generator(N, 200000000))
-#x <- seq.int(1,N) / N
-#plot(snx ~ x, type="S")
-
-# real snx
-## snx functon values
-snx_y_values <- seq.int(1, N)/N
-random_nums <- sort(uniform_generator(N, seed = 200000000))
-
-func_values <- data.frame(random_nums = random_nums,
-                          low_y = seq.int(0, N-1)/N,
-                          high_y = seq.int(1, N)/N)
-func_values$low_diff = abs(func_values$random_nums - func_values$low_y)
-func_values$high_diff = abs(func_values$random_nums - func_values$high_y)
-kable(func_values)
-supx <- max(max(func_values$low_diff), max(func_values$high_diff))
-supx
-## this may or may not make sense to put into the k test, or make
-## the k test call this and put this in some other function
-
-plot(snx_y_values ~ random_nums, type="s", xlim=c(0,1), ylim=c(0,1))
-points(random_nums, snx_y_values)
-abline(0,1)
-
-## notes: need to add (0,0) to this plot?
-# add labels, legend, colors, and filled in and open points
+# Sn(x) values to compare against F(x) = x
+comparison_Snx <- data.frame(low=seq.int(0, 999)/1000,
+                         high=seq.int(1,1000)/1000)
 ```
-
-```{r eval=FALSE}
-# K test for uniform
-kTest <- function(random_numbers){
-  random_numbers <- sort(random_numbers)
-  
-  
-  
-  if(){
+Kolmogrov Test
+```{r}
+kolmogrov <- function(random_vec, comp_value=comparison_value){
+  max_difference <- max(max(abs(random_vec - comparison_Snx$low)),
+                        max(abs(random_vec - comparison_Snx$low)))
+  if(max_difference < comp_value){
     return (TRUE)
   } else {
     return (FALSE)
   }
 }
 ```
-
-
+Test Sequences
 ```{r}
-# plot histograms to show distribution of random numbers, look for gaps
-hist(uniform_generator(1000, 2), breaks=seq.int(0,1000)/1000)
-hist(uniform_generator(1000, 3), breaks=seq.int(0,1000)/1000)
-hist(uniform_generator(1000, 4), breaks=seq.int(0,1000)/1000)
-```
-
-```{r eval=FALSE}
-hist(uniform_generator(1000, 5), breaks=seq.int(0,1000)/1000)
-hist(uniform_generator(1000, 6), breaks=seq.int(0,1000)/1000)
-hist(uniform_generator(1000, 7), breaks=seq.int(0,1000)/1000)
+table(apply(mapply(generator, seed=1:10^3), MARGIN = 2, FUN = kolmogrov))
 ```
 
 # part 2
