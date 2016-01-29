@@ -190,11 +190,11 @@ for(j in 1:N){
 
 ```{r echo=FALSE}
 # Results
-result <- sum(results[results>=900])/length(results)
+#result <- sum(results[results>=900])/length(results)
 hist(results, breaks = c(975:1000), freq = FALSE)
 ```
 
-Of the first 1 million seeds, in other words, seeds with values $X_0=1, X_0 = 2, X_0 = 3, ... , X_0=1000000$, $`r result`$ of them passed.
+Of the first 1 million seeds, in other words, seeds with values $X_0=1, X_0 = 2, X_0 = 3, ... , X_0=1000000$, $`r sum(results)`$ of them passed.
 
 # Conclusion
 
