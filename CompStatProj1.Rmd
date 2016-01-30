@@ -4,6 +4,8 @@ author: "Mario Ibanez"
 date: "January 23, 2016"
 output: pdf_document
 ---
+### hypothesis test?
+
 # Introduction
 The purpose of this report is to evaluate how well the pseudorandom number generator
 $$
@@ -143,7 +145,7 @@ The result of this test was "Pass".  In other words, using the seed value $X_0 =
 Though the computer is very quickly able to use a seed to generate 1000 numbers and then perform the Kolmogorov test, checking every possible seed is a different matter.  There is material in abstract algebra and the theory of finite fields that applies to this very topic in this project.  We know that it would not be ideal if our sequences of 1000 numbers contained a high number of repeated values.  With the correct choice of multiplier and modulus in the random number generator, repetition can be eliminated (as long as the sequence length is less than the size of the modulus).   
 
 ## Testing the first 1,000,000 seeds
-Though it is difficult to test every seed, it is not difficult to test a million different seeds.  For simplicity, the first million seeds can be checked (from 1 to 1 million).  This set of seeds is representative of the population of seeds.  The R code in the appendix shows how this large scale test is carried out.    
+Though it is difficult to test every seed, it is not difficult to test a million different seeds.  For simplicity, the first million seeds can be checked (from 1 to 1 million).  This set of seeds is representative of the population of seeds.  The R code in the appendix shows how this large scale test is carried out.      
 
 ```{r echo=FALSE, cache=TRUE}
 # knitr library
@@ -188,15 +190,31 @@ for(j in 1:N){
 }
 ```
 
+Testing the first million seeds was done a thousand seeds at a time.  For each group of thousand seeds, the number that passed the test was returned.  Below is a histogram of the number of seeds out of a thousand that passed the test, for each group of thousand from one to one million.  
+$\smallskip$
+
 ```{r echo=FALSE}
 # Results
 #result <- sum(results[results>=900])/length(results)
-hist(results, breaks = c(975:1000), freq = FALSE)
+hist(results, breaks = c(975:1000), freq = FALSE,
+     xlab="Number of seeds that passed out of 1000",
+     main="Distribution of proportion passing test")
 ```
 
-Of the first 1 million seeds, in other words, seeds with values $X_0=1, X_0 = 2, X_0 = 3, ... , X_0=1000000$, $`r sum(results)`$ of them passed.
+$\smallskip$
+
+What the histogram shows is that the majority of the time, between 985 and 995 out of 1000 seeds will pass the Kolmogorov test.  In a sense, the way that the seeds were grouped is arbitrary or irrelevant (it is not meaningful to compare the first thousand seeds to the second thousand seeds).  The histogram does give an indication though that there are few "pockets" of seeds that fail the test.  In almost each of the 1000 sets of 1000 seeds, at least 980 seeds will pass the test.  Whether a seed is chosen in the range (1, 1000) or in (402,001, 403,000), there is a high chance that a good sequence of pseudoandom numbers will be generated.    
+
+Overall, in the first million seeds, $`r mean(results)/10`$% of seeds passed the test.  A 95% confidence interval for the population proportion of seeds that pass the test is [0.9902479 0.9906303] using the formula
+$$
+\hat{p} \pm z_{\alpha/2} \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
+$$
+
 
 # Conclusion
+Given these results, it is reasonable to assume that this is a good psuedorandom number generator.  Of the first million seeds, 990,441 create sequences that pass the Kolmogorov test.  It would be interesting to test all $2^31 - 1$ seeds, though it would require more computing power, time, or a different program or algorithm.
+
+$\pagebreak$
 
 # Appendix
 
