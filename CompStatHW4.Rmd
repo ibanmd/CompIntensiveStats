@@ -31,6 +31,7 @@ $$
 The can be used along with a standard uniform random variable to generate values of the random variable $X$. 
 
 ### Algorithm
+This is slightly different than the inverse transform method in the book but the outcome is the same.  
 1. Generate a number $u$ from the standard uniform distribution
 2. Set $x = F^{-1}(u) + 1$
 3. Repeat $n$ times
@@ -129,17 +130,19 @@ In other words, if $j_0$ is odd, then $P(X=j_0) = (0.55)(0.20) + (0.45)(0) = 0.1
 ### Algorithm
 1. Generate $u_1$ from standard uniform distribution
 2. Generate $u_2$ from standard uniform distribution
-3. If $u1 < \alpha$, (odd case) set $x = 2(floor(5u_2))+5$
+3. If $u_1 < \alpha$, (odd case) set $x = 2(floor(5u_2))+5$
 4. Otherwise (even case) set $x = 2(floor(5u_2))+6$ 
 5. Go back to step 1, repeat $n$ times
 
 ### Program
 ```{r}
+# Initialize variables, generate uniform random numbers
 N <- 10^4
 alpha <- 0.55
 uniform1 <- runif(N)
 uniform2 <- runif(N)
 x_dist <- c(rep(0, N))
+# These two lines generate the x values
 x_dist[uniform1 < 0.55] <- 2*floor(5*uniform2[uniform1 < 0.55])+5
 x_dist[x_dist == 0] <- 2*floor(5*uniform2[uniform1 >= 0.55])+6
 ```
