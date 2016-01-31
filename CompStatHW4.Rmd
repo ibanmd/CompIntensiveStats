@@ -36,9 +36,10 @@ The can be used along with a standard uniform random variable to generate values
 3. Repeat $n$ times
 
 ### Program
-Below is a histogram using the derivation and algorithm.  10,000 values were generated.  The distribution is quite good. 
+Below is a program and histogram using the derivation and algorithm.  10,000 values were generated.  The distribution is quite good. 
 
-```{r echo=FALSE}
+```{r}
+# F inverse function
 F_inv <- function(u){
   x <- rep(0, length(u))
   if(u < 0.30)
@@ -51,13 +52,21 @@ F_inv <- function(u){
     x <- 3 + 1
   return(x)
 }
-uniform_random <- array(runif(10^4))
-hist(sapply(uniform_random, FUN = F_inv), 
+# This line is generates the x values
+x <- sapply(array(runif(10^4)), FUN = F_inv)
+```
+
+$\smallskip$
+
+```{r echo=FALSE}
+hist(x,
      breaks = c(0:4), freq = FALSE,
-     xlab = "X",
+     xlab = "Generated X Values",
      main = "Distribution of 10,000 generated X values",
      labels = TRUE,
-     ylim = c(0,.5))
+     ylim = c(0, 0.5),
+     xaxt = "n")
+axis(1, at=(0:3)+.5, labels=1:4)
 ```
 
 
@@ -90,11 +99,61 @@ $$
 Use the text's random number sequence to generate X.
 
 ## Answer
+(What is the text's random number sequence?)   
+The method used will the composition approach. 
 
 ### Derivation
+The composition approach works by finding $\alpha$, $p_j^{(1)}$, and $p_j^{(2)}$ so that 
+$$
+P\{X=j\} = \alpha p_j^{(1)} + (1-\alpha) p_j^{(2)}
+$$
+
+Let $\alpha = 0.55$ and let
+$$
+p_j^{(1)} = P\{X=j\} =
+\begin{cases}
+0     &\mbox{for } x \; even \\
+0.2   &\mbox{for } x \; odd
+\end{cases}
+$$
+and
+$$
+p_j^{(2)} = P\{X=j\} =
+\begin{cases}
+0     &\mbox{for } x \; odd \\
+0.2   &\mbox{for } x \; even
+\end{cases}
+$$
+In other words, if $j_0$ is odd, then $P(X=j_0) = (0.55)(0.20) + (0.45)(0) = 0.11$ and if $j_0$ is even then $P(X=j_0) = (0.55)(0) + (0.45)(0.20) = 0.09$.  This is the desired outcome.  
+
 ### Algorithm
+1. Generate $u_1$ from standard uniform distribution
+2. Generate $u_2$ from standard uniform distribution
+3. If $u1 < \alpha$, (odd case) set $x = 2(floor(5u_2))+5$
+4. Otherwise (even case) set $x = 2(floor(5u_2))+6$ 
+5. Go back to step 1, repeat $n$ times
+
 ### Program
-### Analytical Result
+```{r}
+N <- 10^4
+alpha <- 0.55
+uniform1 <- runif(N)
+uniform2 <- runif(N)
+x_dist <- c(rep(0, N))
+x_dist[uniform1 < 0.55] <- 2*floor(5*uniform2[uniform1 < 0.55])+5
+x_dist[x_dist == 0] <- 2*floor(5*uniform2[uniform1 >= 0.55])+6
+```
+
+$\smallskip$
+
+```{r echo=FALSE}
+hist(x_dist, freq = FALSE,
+     labels = TRUE, breaks = 4.9:14.9,
+     xaxt = "n", xlab = "Generated X Values",
+     main = "Distribution of 10,000 Generated X Values",
+     ylim=c(0,.15))
+axis(1, at=(5:14)+.5, labels=5:14)
+```
 
 # Problem 5.10)
 A casualty insurance company has 1000 policyholders, each of whom will independently present a claim in the next month with probability 0.05.  Assuming that the amounts of the claims made are independent exponential random variables with mean $800, use simulation to estimate the probability that the sum of these claims exceeds $50,000.
