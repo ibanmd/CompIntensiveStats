@@ -77,15 +77,27 @@ Let $X$ be a binomial random variable with parameters $n$ and $p$.  Suppose that
 ## Answer
 
 ### Derivation
-
+We are given
+$$
+Y = \frac{P(X=x)}{P(X \ge k)} = \frac{P(X=x)}{\alpha} \;\; \mbox{for } x = k,k+1,...,n
+$$
+Then:
+$$
+P(Y=y) = \frac{{n \choose y} p^y (1-p)^{n-y}}{\alpha} \;\; \mbox{for } y = k,k+1,...,n
+$$
+Then we can let $y_0 = k$, $y_1 = k+1$, $y_2 = k+2$, and so on until $y_{n-k} = n$.  Then finally we use the rule for the inverse transform method:
+$$
+Y = y_j \; \mbox{if} \; F(y_{j-1}) \le U < F(y_j))
+$$
+where
+$$
+F(y_j) = \sum_{i=k}^{k+j} P(Y=i)
+$$
 
 ### Algorithm
-
-
-### Program
-
-
-### Analytical Result
+1. Generate $u$ from $U(0,1)$
+2. Set $y = y_j$ according to $F(y_{j-1}) \le u < F(y_j))$
+3. Repeat $n$ times
 
 
 # Problem 4.15)
@@ -158,6 +170,8 @@ hist(x_dist, freq = FALSE,
 axis(1, at=(5:14)+.5, labels=5:14)
 ```
 
+This plot of the 10,000 generated $x$ values appears reasonable given what we would expect from the distribution defined in the question.
+ 
 # Problem 5.10)
 A casualty insurance company has 1000 policyholders, each of whom will independently present a claim in the next month with probability 0.05.  Assuming that the amounts of the claims made are independent exponential random variables with mean $800, use simulation to estimate the probability that the sum of these claims exceeds $50,000.
 
@@ -194,12 +208,12 @@ where the $X_i$ are $iid$ exponential with mean 800 and $N$ is binomial with $n=
 The R code appears different than this algorithm, but in practice this is what is happening.  The R language benefits from avoiding explicitly writing *for* loops, and instead using other methods like *apply*, *lapply*, and *sapply*.
 
 ### Program
-The program uses the *generate_claims()* function to generate *n* claims from an exponential distribution, where *n* has a binomial distribution.  100,000 trials are run, and then the sum of the claims from each trial is calculated.  
+The program uses the *generate_claims()* function to generate *n* claims from an exponential distribution, where *n* has a binomial distribution.  1,000,000 trials are run, and then the sum of the claims from each trial is calculated.  
 
-```{r}
+```{r cache=TRUE}
 # Set seed, set N = number of simulations
 set.seed(1234)
-N = 10^5
+N = 10^6
 # Returns variable number claims from exponential distribution
 generate_claims <- function(vector, holders = 1000, chance = 0.05, beta = 800){
   # Number of claims that will occur is binomial(holders, chance)
@@ -228,13 +242,49 @@ hist(distribution,
      xlab = "Claim Amounts ($)")
 ```
 
-The following R command returns the estimated probability that the sum of the claims is above $50,000:
+$\smallskip$
+
+The distribution seems to be centered at around $40,000 which we would expect since this is the product of the mean of the two distributions (800 and 50).  The following R command returns the estimated probability that the sum of the claims is above $50,000:
+
 ```{r}
 mean(distribution>50000)
 ```
 
-Out of 100,000 trials, approximately $`r mean(distribution>50000)`$ trials resulted in an outcome where the total value of the claims exceeded $50,000. 
+Out of 1,000,000 trials, the approximate proportion of trials where the total value of the claims was above $50,000 was $`r mean(distribution>50000)`$.
 
 ### Analytical Result
+The best idea I can come up with is that this is a mixture distribution.  The different distributions are Erlang distributions (sum of exponential distributions) and the weights are binomial weights for each.  If we are interested in the distribution of the sum of the claims, denoted $s(x)$, then 
+\begin{align*}
+s(x) 
+&= \sum^{1000}_{i=0} w_i p_i(x) \\[1ex]
+&= \sum^{1000}_{i=0} \left[{1000 \choose i} (0.05)^i (0.95)^{1000-i} \right] \left[ \frac{(1/800)^i x^{i-1} e^{-x/800}}{(i-1)!}  \right]\\[1ex]
+&= \sum^{1000}_{i=1} \left[{1000 \choose i} (0.05)^i (0.95)^{1000-i} \right] \left[ \frac{(1/800)^i x^{i-1} e^{-x/800}}{(i-1)!}  \right]
+\end{align*}
+where the left term is the binomial weight and the right term is the Erlang PDF.  The first term in the sum is 0 (the sum of zero exponential random variables is zero).  The CDF of the Erlang distribution is
+$$
+F(y) = 1 - \sum_{n=0}^{k-1} \frac{1}{n!} e^{-\lambda y} (\lambda y)^n
+$$
+which then means
+$$
+P(Y>y) = \sum_{n=0}^{k-1} \frac{1}{n!} e^{-\lambda y} (\lambda y)^n
+$$
+Then if we place this term into the mixture distribution formula above and let $x=50,000$ and $\lambda = 1/800$ we get:
+$$
+P(X>50000) = \sum^{1000}_{i=1} \left[{1000 \choose i} (0.05)^i (0.95)^{1000-i} \right] \left[ \sum_{n=0}^{i-1} \frac{1}{n!} e^{-62.5} (62.5)^n  \right]
+$$
 
-***find out how to do this analytically***
+Evaluating this sum should give us the chance that the sum of the claims is above $50,000.  That's as far as an analytical result that I could reach.  To carry out the calculations I used R.  The only problem is that there are very large factorials involved.  The largest factorial that R can handle is 170!.  Though there are factorials up to 1000 in the equation, notice that since the binomial probabilities are very small for $i>170$ and the factorial in the denominator of the Erlang term also make those terms very small, calculating from $i=1$ to $i=170$ will give us an approximation to the analytical result.
+
+```{r cache=TRUE}
+probability <- c(rep(0,170))
+for (i in 1:length(probability)){
+  probability[i] <- dbinom(i, 1000, 0.05) * sum(1/factorial(0:(i-1)) * 62.5^(0:(i-1)))
+}
+probability <- exp(-62.5) * sum(probability)
+```
+
+```{r}
+probability
+```
+
+This method says that the probability that the sum of the claims is above $50,000 is approximately $`r probability`$ which is a little different than the simulation's result.  The absolute difference is 0.0000697.  The estimation of the analytical result is a very slight underestimation because the terms after $i=170$ were excluded from the summation, and even though they are extremely small, they are still positive.
