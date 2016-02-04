@@ -4,7 +4,6 @@ author: "Mario Ibanez"
 date: "January 23, 2016"
 output: pdf_document
 ---
-### hypothesis test?
 
 # Introduction
 The purpose of this report is to evaluate how well the pseudorandom number generator
@@ -34,7 +33,7 @@ $$
 The null hypothesis is rejected if the test statistic, $sup_x |S_n(x) - F(x)|$ is less than a specific value.  Since for the standard uniform distribution, $F(x) = x$, we can simplify the test statistic.  More explicitly: 
 \vspace{2mm}  
 $$
-\mbox{If } sup_x |S_n(x) - x| < \frac{1.6276}{n} \mbox{, then reject } H_o \mbox{, otherwise fail to reject } H_o
+\mbox{If } sup_x |S_n(x) - x| < \frac{1.6276}{n} \mbox{, fail to reject } H_o \mbox{, otherwise reject } H_o
 $$
 \vspace{2mm}  
 In the rule above, $n$ is the length of the sequence of random numbers.  Using this decision rule, the type 1 error rate is $\alpha = 0.01$.  
@@ -190,7 +189,7 @@ for(j in 1:N){
 }
 ```
 
-Testing the first million seeds was done a thousand seeds at a time.  For each group of thousand seeds, the number that passed the test was returned.  Below is a histogram of the number of seeds out of a thousand that passed the test, for each group of thousand from one to one million.  
+Testing the first million seeds was done a thousand seeds at a time.  For each group of thousand seeds, the number that passed the test was recorded.  Below is a histogram of the number of seeds out of a thousand that passed the test, for each group of thousand from one to one million.  
 $\smallskip$
 
 ```{r echo=FALSE}
@@ -209,7 +208,7 @@ Overall, in the first million seeds, $`r mean(results)/10`$% of seeds passed the
 $$
 \hat{p} \pm z_{\alpha/2} \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
 $$
-
+This confidence interval is based on the assumption that the first million seeds serve as a representative sample of the population.
 
 # Conclusion
 Given these results, it is reasonable to assume that this is a good psuedorandom number generator.  Of the first million seeds, 990,441 create sequences that pass the Kolmogorov test.  It would be interesting to test all $2^31 - 1$ seeds, though it would require more computing power, time, or a different program or algorithm.
