@@ -1,0 +1,158 @@
+---
+title: "Problem 8.6"
+author: "Mario Ibanez"
+date: "February 5, 2016"
+output: pdf_document
+---
+
+# Problem 8.6
+
+## Question
+Estimate
+$$
+\int_0^1 e^{x^2} dx
+$$
+by generating random numbers.  Generate at least 100 values and stop when the standard deviation of your estimator is less than 0.01.
+
+## Answer
+
+```{r echo=FALSE}
+set.seed(1234)
+## initialize vectors and values
+initial_number <- 200
+x <- c(rep(0,10000))
+x_bar <- c(rep(0,10000))
+samp_stan_dev <- c(rep(0,10000))
+
+## function to generate X estimates
+generate_x <- function(){
+  return(mean(exp(runif(50000)^2)))
+}
+
+## set first 100 values of x
+for(i in 1:initial_number){
+  x[i] <- generate_x()
+}
+
+## calculate first 100 values of x_bar and samp_stan_dev
+x_bar[1] <- x[1]
+for(i in 2:initial_number){
+  x_bar[i] <- x_bar[i-1] + (x[i] - x_bar[i-1])/(i)
+  samp_stan_dev[i] <- sqrt((1 - 1/(i-1)) * (samp_stan_dev[i-1])^2 + i * (x_bar[i] - x_bar[i-1])^2)
+}
+output <- list() 
+## finish the rest of the simulation and print the results
+for(i in (initial_number+1):10000){
+  ## When condition is met, print results
+  if(samp_stan_dev[i-1] / sqrt(i-1) < 0.0001){
+    estimate <- x_bar[i-1]
+    stan_error <- samp_stan_dev[i-1]/sqrt(i-1)
+    lower_bound <- estimate-1.96*stan_error
+    upper_bound <- estimate+1.96*stan_error
+    true_value <- 1.462651745907
+    contains <- (true_value<=upper_bound && true_value>=lower_bound)
+    output[1] <- paste("Integral estimate is: ", estimate, sep = "")
+    output[2] <- paste("Simulation stopped at step (sample size): ", i-1, sep = "")
+    output[3] <- paste("Sample standard deviation is: ", samp_stan_dev[i-1], sep = "")
+    output[4] <- paste("Standard error estimate: ", stan_error, sep="")
+    output[5] <- paste("95% confidence interval is: [", lower_bound, ", ", upper_bound, "]", sep = "")
+    output[6] <- paste("True value of integral: ", true_value, sep="")
+    output[7] <- paste("Interval contains true value of definite integral: ", contains, sep = "")
+    break
+  }
+  x[i] <- generate_x()
+  x_bar[i] <- x_bar[i-1] + (x[i] - x_bar[i-1])/(i)
+  samp_stan_dev[i] <- sqrt((1 - 1/(i-1)) * (samp_stan_dev[i-1])^2 + i * (x_bar[i] - x_bar[i-1])^2)
+}
+```
+
+The method given in the book is:  
+
+1. Choose an acceptable value $d$ for the standard deviation of the estimator.
+2. Generate at least 100 values.
+3. Continue to generate additional data values, stopping when you have generated $k$ values and $S/\sqrt{k} < d$, where $S$ is the sample standard deviation based on those $k$ values.
+4. The estimate of $\theta$ is given by $\overline{X} = \sum_{i=1}^k X_i / k$.
+
+$\smallskip$
+
+Below is the code that implements the method above.  What is not clear is why the question says to stop when the standard deviation of the estimator is less than 0.01, while the method above says to stop when $S/\sqrt{k} < 0.01$.  My interpretation/implementation is:  
+
+1. Choose $d=0.0001$ for the standard deviation of the estimator.  The estimator is defined to be:  Generate 50,000 values from $U(0,1)$ and evaluate their value in $exp(x^2)$, then take the mean of these 50,000 values.  This mean is an estimate of the definite integral, it is denoted $X$.
+2. Generate 200 estimates, in other words, $X_1$, $X_2$, $X_3$, ... $X_{200}$.
+3. Continue to generate additional $X_i$, stopping when you have generated $k$ values and $S/\sqrt{k} < d$, where $S$ is the sample standard deviation based on those $k$ values, $X_1$, $X_2$, $X_3$, ... $X_k$.
+4. The estimate of $\theta$ is given by $\overline{X} = \sum_{i=1}^k X_i / k$.
+
+$\smallskip$  
+
+The program at the end of the document implements this method.  The output of the program is:  
+
+```{r echo=FALSE}
+for(i in 1:length(output)) {
+  print(output[[i]][1], quote = FALSE)
+}
+```
+
+Below is a histogram of the estimates.  This histogram estimates the population distribution of $X$, estimates of the definite integral.  
+
+$\smallskip$
+
+```{r echo=FALSE}
+hist(x[x > 0],
+     xlab = "Estimates of the definite integral",
+     main = "Sampling distribution of estimates")
+```
+
+$\smallskip$
+
+We estimate that the population standard deviation is $`r tail(samp_stan_dev[samp_stan_dev>0], 1)`$ and with a sample size of $`r sum(x>0)`$ the standard error of the sampling distribution is $`r tail(samp_stan_dev[samp_stan_dev>0], 1) / sqrt(sum(x>0))`$ . 
+
+## Code
+
+```{r eval=FALSE}
+## initialize vectors and values
+initial_number <- 200
+x <- c(rep(0,10000))
+x_bar <- c(rep(0,10000))
+samp_stan_dev <- c(rep(0,10000))
+
+## function to generate X estimates
+generate_x <- function(){
+  return(mean(exp(runif(50000)^2)))
+}
+
+## set first 100 values of x
+for(i in 1:initial_number){
+  x[i] <- generate_x()
+}
+
+## calculate first 100 values of x_bar and samp_stan_dev
+x_bar[1] <- x[1]
+for(i in 2:initial_number){
+  x_bar[i] <- x_bar[i-1] + (x[i] - x_bar[i-1])/(i)
+  samp_stan_dev[i] <- sqrt((1 - 1/(i-1)) * (samp_stan_dev[i-1])^2 + i * (x_bar[i] - x_bar[i-1])^2)
+}
+
+## finish the rest of the simulation and print the results
+for(i in (initial_number+1):10000){
+  ## When condition is met, print results
+  if(samp_stan_dev[i-1] / sqrt(i-1) < 0.0001){
+    estimate <- x_bar[i-1]
+    stan_error <- samp_stan_dev[i-1]/sqrt(i-1)
+    lower_bound <- estimate-1.96*stan_error
+    upper_bound <- estimate+1.96*stan_error
+    true_value <- 1.462651745907
+    contains <- (true_value<=upper_bound && true_value>=lower_bound)
+    print(paste("Integral estimate is: ", estimate, sep = ""))
+    print(paste("Simulation stopped at step (sample size): ", i-1, sep = ""))
+    print(paste("Sample standard deviation is: ", samp_stan_dev[i-1], sep = ""))
+    print(paste("Standard error estimate: ", stan_error, sep=""))
+    print(paste("95% confidence interval is: [", lower_bound, ", ", upper_bound, "]", sep = ""))
+    print(paste("True value of integral: ", true_value, sep=""))
+    print(paste("Contains true value of definite integral: ", contains, sep = ""))
+    break
+  }
+  x[i] <- generate_x()
+  x_bar[i] <- x_bar[i-1] + (x[i] - x_bar[i-1])/(i)
+  samp_stan_dev[i] <- sqrt((1 - 1/(i-1)) * (samp_stan_dev[i-1])^2 + i * (x_bar[i] - x_bar[i-1])^2)
+}
+```
