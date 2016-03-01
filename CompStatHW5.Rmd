@@ -1,0 +1,88 @@
+---
+title: "Statistical Computing HW 5"
+author: "Mario Ibanez"
+date: "February 29, 2016"
+output: pdf_document
+---
+
+# Assigment
+
+Consider a repeated measure experiment with three treatments as follows:
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(knitr)
+library(combinat)
+data <- data.frame(Subject = c(1, 2, 3),
+                   A = c(10, 13, 6),
+                   B = c(11, 14, 8),
+                   C = c(13, 17, 9))
+data_matrix <- as.matrix(data[,2:4])
+kable(data)
+```
+
+Use a randomization test with the systematic data permutations to test:
+$$
+H_o: \mu_A = \mu_B = \mu_C
+$$
+
+# Solution
+
+As was mentioned in class, the equivalent test is an ANOVA $F$ test for repeated measures.  Because each treatment has (the same) three subjects, and after removing other constant terms, the equivalent test statistic that will be used to compare different permutations is:
+
+$$
+\sum_{i = 1}^k T_i^2
+$$
+
+where
+
+$$
+T_i = \sum_{j=1}^n y_{ij}
+$$
+
+Basically, $T_i$ is the sum for treatment $i$.  These sums need to be calculated for each treatment, squared, and then added up.  Permutations will be along the rows, in other words, for each patient, the three values for the treatments will be permuted.  The p-value is calculated by:
+
+$$
+\mbox{p-value } = \frac{\mbox{number of permutations that have a test statistic greater than the original}}{\mbox{total number of permutations}}
+$$
+
+For the original data set, the test statistic is:
+
+```{r}
+calculate_stat <- function(x){
+  return(sum(apply(X = x, MARGIN = 2, FUN = sum)^2))
+}
+original <- calculate_stat(data_matrix); original
+```
+
+The original test statistic that other permutations will be compared to is $`r original`$.  
+
+Since in the question $k=3$ and $n=3$, there are $(k!)^{n-1} = (3!)^2 = 36$ total permutations that need to be checked.  The first row does not need to be permuted.  If we were to permute the first row, it would just lead to six duplicates of each test statistic calucated by leaving the first row fixed.  
+
+We do not have duplicate values in the rows and do not need to take this issue into account.  The code below calculates the permutations of the second and third rows, and then iterates through all combinations and calcuates the test statistic for each case.
+
+```{r}
+# Calculate all the permutations for rows 2 and 3
+permutations <- apply(X = data_matrix[2:3, ], MARGIN = 1, permn)
+# Initialize vector for store test statistics
+vector_of_statistics <- c(rep(0, 36))
+# Double for loop to calculate the test statistic for each combination
+for(i in 1:length(permutations[[1]])){
+  for(j in 1:length(permutations[[2]])){
+    temp_matrix <- matrix(c(data_matrix[1,], permutations[[1]][[i]], 
+                            permutations[[2]][[j]]), 
+                          nrow = 3, byrow = TRUE)
+    vector_of_statistics[6*(i-1) + j] <- calculate_stat(temp_matrix)
+  }
+}
+```
+
+Finally, we can calculate what proportion of the test statistics have a value greater than the original data set's:
+
+```{r}
+# Mean of zeroes and ones
+p_value <- mean(vector_of_statistics > original)
+p_value
+```
+
+The p-value is $`r p_value`$.  This is because in the data set, Treatment C contains the three highest values in each row, Treatment B contains the second largest values in each row, and Treatment A contains the smallest number in each row.  There is no other arrangement of data that produces a larger sum of squared column totals.  Thus we reject the null hypothesis and conclude that the population means of the three treatments are not all equal to each other.
+
