@@ -1,0 +1,165 @@
+---
+title: "Statistical Computing HW 6"
+author: "Mario Ibanez"
+date: "March 8, 2016"
+output: pdf_document
+---
+
+# Question 1
+Let $x_1, ... x_n$ represent a random sample from each of the distributions having the following probability density function.  In each case find the MLE of $\theta$.
+
+## Part (a)
+
+$$
+f(x;\theta) = \frac{\theta^x e^{-\theta}}{x!}  \mbox{ with } x = 0,1,2... \mbox{  and } 0 \le \theta \mbox{ where } f(0,0) = 1
+$$
+
+### Answer
+
+The likelihood function is:
+
+$$
+L = \prod_{i=1}^n \frac{\theta^{x_i} e^{-\theta}}{x_i!}
+$$
+
+The log-likelihood is:
+
+$$
+ln(L) = \sum_{i=1}^n \left( x_i ln(\theta) - \theta - ln(x_i!) \right)
+$$
+
+The derivative of the log-likelihood is:
+
+$$
+\frac{d ln(L)}{d \theta} = \sum_{i=1}^n \left( \frac{x_i}{\theta} - 1  \right)
+$$
+
+This is set to 0 and solved for $\hat{\theta}$:
+\begin{align*}
+0 &= \sum_{i=1}^n \left( \frac{x_i}{\hat{\theta}} - 1  \right) \\[1ex]
+n \hat{\theta} &= \sum_{i=1}^n x_i \\[1ex]
+\hat{\theta} &= \sum_{i=1}^n \frac{x_i}{n}
+\end{align*}
+
+$\pagebreak$
+
+## Part (b)
+$$
+f(x;\theta) = \theta x^{\theta - 1}  \mbox{ with } 0 < x < 1 \mbox{  and } \theta > 0
+$$
+
+### Answer
+
+The likelihood function is:
+
+$$
+L = \prod_{i=1}^n \theta x_i^{\theta - 1}
+$$
+
+The log-likelihood is:
+
+$$
+ln(L) = \sum_{i=1}^n \left( ln(\theta) + (\theta - 1)ln(x_i) \right)
+$$
+
+The derivative of the log-likelihood is:
+
+$$
+\frac{d ln(L)}{d \theta} = \sum_{i=1}^n \left( \frac{1}{\theta} + ln(x_i) \right)
+$$
+
+This is set to 0 and solved for $\hat{\theta}$:
+\begin{align*}
+0 &= \sum_{i=1}^n \left( \frac{1}{\hat{\theta}} + ln(x_i) \right) \\[1ex]
+\frac{-n}{\hat{\theta}} &= \sum_{i=1}^n \left(  ln(x_i) \right) \\[1ex]
+\hat{\theta} &= \frac{-n}{\sum_{i=1}^n \left(  ln(x_i) \right)}
+\end{align*}
+
+## Part (c)
+$$
+f(x;\theta) = \frac{1}{\theta} e^{-x/\theta}  \mbox{ with } x > 0 \mbox{  and }  \theta > 0
+$$
+
+### Answer
+
+The likelihood function is:
+
+$$
+L = \prod_{i=1}^n \frac{1}{\theta} e^{-x_i/\theta}
+$$
+
+The log-likelihood is:
+
+$$
+ln(L) = \sum_{i=1}^n \left( ln(1) - ln(\theta) - \frac{x_i}{\theta} \right)
+$$
+
+The derivative of the log-likelihood is:
+
+$$
+\frac{d ln(L)}{d \theta} = \sum_{i=1}^n \left( -\frac{1}{\theta} + \frac{x_i}{\theta^2}  \right)
+$$
+
+This is set to 0 and solved for $\hat{\theta}$:
+\begin{align*}
+0 &= \sum_{i=1}^n \left( -\frac{1}{\hat{\theta}} + \frac{x_i}{\hat{\theta}^2}  \right) \\[1ex]
+\frac{n}{\hat{\theta}} &= \frac{1}{\hat{\theta}^2} \sum_{i=1}^n x_i \\[1ex]
+\hat{\theta} &= \sum_{i=1}^n \frac{x_i}{n}
+\end{align*}
+
+## Part (d)
+$$
+f(x;\theta) = \frac{1}{2} e^{-|x-\theta|}  \mbox{ with } - \infty < x < \infty  \mbox{  and } - \infty < \theta < \infty
+$$
+
+### Answer
+
+The likelihood function is:
+
+$$
+L = \prod_{i=1}^n  \frac{1}{2} e^{-|x_i-\theta|}
+$$
+
+The log-likelihood is:
+
+\begin{align*}
+ln(L) 
+&= \sum_{i=1}^n \left( ln(1/2) - |x_i - \theta| \right) \\[1ex]
+&= (-n)ln(2) - \sum_{i=1}^n |x_i - \theta|
+\end{align*}
+
+Unlike in the previous questions, this cannot be maximized by taking the derivative with respect to $\theta$ and setting equal to zero, since the absolute value function is not differentiable.  Since the function should be maximized an the summation is being subtracted, the amount being subtracted (the summation) should be minimized.  The median, *m* of the $x_i$ values is the value that minimizes the sum and maximizes the log-likelihood.  One important thing to note is that this value *m* is possibly not unique.  if *n* is even, then any number between $x_{n/2}$ and $x_{(n/2) + 1}$ ***(assuming ordered $\mathbf{x_i}$)*** inclusive would serve as a median for the purposes of maximizing the log-likelihood.  Thus:
+$$
+\hat{\theta} = x_{(n+1)/2} \mbox{ if } n \mbox{ is odd}
+$$
+or
+$$
+\hat{\theta} \in [x_{n/2}, x_{(n/2)+1}] \mbox{ if } n \mbox{ is even}
+$$
+
+## Part (e)
+$$
+f(x;\theta) = e^{-(x-\theta)}  \mbox{ with } x \ge \theta
+$$
+
+### Answer
+
+The likelihood function is:
+
+$$
+L = \prod_{i=1}^n e^{-(x_i-\theta)}
+$$
+
+The log-likelihood is:
+
+$$
+ln(L) = -\sum_{i=1}^n \left( x_i-\theta \right)
+$$
+
+In order to maximize this, the summation must be minimized.  Normally this can be done by choosing $\hat{\theta} = mean(x_i)$ (which would give a value of zero once summed), but due to the fact that $x \ge \theta$, the value that minimizes the sum is:
+$$
+\hat{\theta} = min(x_i)
+$$
+
+
+
