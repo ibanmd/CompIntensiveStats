@@ -16,9 +16,9 @@ treats <- c("A", "A", "B", "B", "B",
 permutations <- unique(permn(treats))
 
 test_stat <- function(data, treatments){
-  return(sum(sum(data[treatments=="A"])^2, 
-             sum(data[treatments=="B"])^2, 
-             sum(data[treatments=="C"])^2))
+  return(sum((sum(data[treatments=="A"])^2)/2, 
+             (sum(data[treatments=="B"])^2)/3, 
+             (sum(data[treatments=="C"])^2)/4))
 }
 ```
 
@@ -71,7 +71,7 @@ for(i in 1:1260){
 The test statistic for the original permutation is $`r results[1]`$.  The number of test statistics that are greater than or equal to this is:
 
 ```{r}
-sum(results >= 5133)
+sum(results >= results[1])
 ```
 
 It turns out that the original permutation had the largest test statistic.  Therefore, the p-value is $\frac{1}{1260}$.  There is sufficient evidence to reject the null hypothesis at the 0.05% significance level.
@@ -91,10 +91,10 @@ for(i in 1:800){
 }
 ```
 
-The number of test statistics in this set of 800 greater than or equal to 5133 is:
+The number of test statistics in this set of 800 greater than or equal to 1402.3333 is:
 
 ```{r}
-sum(results >= 5133)
+sum(results >= 1402.3333)
 ```
 
 This number will fluctuate from simulation to simulation because of the random aspect.  Regardless, as a proportion it is so low that the same conclusion can be reached as in the systematic case.  There is sufficient evidence to reject the null hypothesis at the 0.05% significance level.
@@ -125,10 +125,9 @@ permutations <- unique(permn(treats))
 # Function that takes the data vector and the 
 # permutations, returns the test statistic
 test_stat <- function(data, treatments){
-  return(sum(sum(data[treatments=="A"])^2, 
-             sum(data[treatments=="B"])^2, 
-             sum(data[treatments=="C"])^2))
-}
+  return(sum((sum(data[treatments=="A"])^2)/2, 
+             (sum(data[treatments=="B"])^2)/3, 
+             (sum(data[treatments=="C"])^2)/4))
 
 # Initialize results vector
 results <- rep(0, 1260)
@@ -139,7 +138,7 @@ for(i in 1:1260){
 }
 
 # P-value
-sum(results >= 5133)
+sum(results >= 1402.3333)
 
 # Initialize results vector
 results <- rep(0, 800)
@@ -152,7 +151,7 @@ for(i in 1:800){
 }
 
 # P-value for random case
-sum(results >= 5133)
+sum(results >= 1402.3333)
 ```
 
 
