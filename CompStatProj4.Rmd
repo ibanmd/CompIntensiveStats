@@ -1,0 +1,54 @@
+---
+title: "Statistical Computing Project 4"
+author: "Mario Ibanez"
+date: "March 26, 2016"
+output: pdf_document
+---
+
+Plotting the true distribution
+
+```{r}
+proportion <- 0.35
+sample_size <- 1000
+
+sample1_size <- rbinom(n = 1, size = sample_size, prob = proportion)
+sample2_size <- sample_size - sample1_size
+
+sample1 <- rnorm(n = sample1_size, mean = 0.0, sd = 1)
+sample2 <- rnorm(n = sample2_size, mean = 2.5, sd = 1)
+
+x_axis <- seq(from = min(sample1), to = max(sample2), by = 0.1)
+
+# Plot distribution of full sample
+plot(x = density(c(sample1, sample2)),
+     ylim = c(-0.01, .28),
+     lwd = 2)
+
+# Plot true population distribution
+lines(x = x_axis, 
+      y = (proportion * dnorm(x = x_axis, mean = 0, sd = 1)) + 
+          (1 - proportion)*dnorm(x = x_axis, mean = 2.5, sd = 1),
+      lty = 2)
+
+# Plot distribution of sample 1
+points(x = sample1,
+       y = rep(0, sample1_size), 
+       col = "red")
+
+# Plot true normal N(0, 1)
+lines(x = x_axis, 
+      y = proportion * dnorm(x = x_axis, mean = 0, sd = 1), 
+      col = "red",
+      lty = 2)
+
+# Plot distribution of sample 2
+points(x = sample2,
+       y = rep(-0.005, sample2_size), 
+       col = "blue")
+
+# Plot true normal N(2.5, 1)
+lines(x = x_axis, 
+      y = (1 - proportion)*dnorm(x = x_axis, mean = 2.5, sd = 1), 
+      col = "blue",
+      lty = 2)
+```

@@ -1,0 +1,21 @@
+---
+title: "Statistical Computing HW 8"
+author: "Mario Ibanez"
+date: "March 26, 2016"
+output: pdf_document
+---
+
+# Question 1
+Suppose that $y$ is a single observation from a binomial distribution with parameters $n$ and $p$.  
+
+**a) Find the MLE of $\mathbf{p}$.**  
+
+**b) Assume the prior distribution of $\mathbf{p}$ is $\mathbf{Beta(a, b)}$ with $\mathbf{0<p<1}$.  Find the Bayes estimator of $\mathbf{p}$.**  
+
+# Question 2
+Suppose that $x_1,...x_n$ is a random sample from a normal distribution $N(\theta, \sigma^2)$, where $\sigma^2$ is known.
+
+**a) Find the MLE of $\mathbf{\theta}$.**  
+
+**b) Assume the prior distribution of $\mathbf{\theta}$ is $\mathbf{N(\theta_0, \sigma_0^2)}$.  Find the Bayes estimator of $\mathbf{\theta}$.**  
+
