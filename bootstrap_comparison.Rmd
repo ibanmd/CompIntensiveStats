@@ -1,0 +1,172 @@
+---
+title: "Bootstrap-t Comparison"
+author: "Mario Ibanez"
+date: "March 26, 2016"
+output: pdf_document
+---
+
+# Question
+Let $x_1, x_2, ... x_{20}$ each be independent values from an exponential distribution with mean = $1/lambda$. (In other words, $f(x) = \lambda e^{-\lambda x}$).  Use the Bootstrap-t method to construct a 95% confidence interval for the parameter $\lambda$.
+
+# Answer
+Below is a random sample of 20 values from the exponential distribution:
+
+```{r}
+# Set seed
+set.seed(1234)
+
+# Load packages and data
+library(ggplot2)
+library(knitr)
+
+# 20 random exponential values with mean = 1/10
+lambda <- 10
+data <- rexp(n = 20, rate = lambda); data
+```
+
+The 95% confidence interval will be calcuated two ways.
+
+# Method 1
+This method will use the delta method to estimate the variance of $\hat{\theta} = 1/\overline{x}$.  We have:
+
+$$
+S_{\hat{\theta}} = \frac{S}{\overline{x}^2 \sqrt{n}}
+$$
+$$
+\hat{\theta} = \frac{1}{\overline{x}}
+$$
+
+Below are the values of $\hat{\theta}$ and $S_{\hat{\theta}}$
+
+```{r}
+# Values for original sample
+theta_hat <- 1 / mean(data); theta_hat
+s_theta_hat <- sd(data) / (mean(data)^2 * sqrt(length(data))); s_theta_hat
+```
+
+Now we can bootstrap 1000 samples from this data.  First, this is the function that will be used to generate the "t-statistic" for each bootstrapped sample:
+
+```{r}
+# Function to calculate statistics
+statistic_generator <- function(x, theta_hat){
+  theta_hat_star <- 1 / mean(x)
+  s_theta_hat_star <- sd(x) / (mean(x)^2 * sqrt(length(x)))
+  return((theta_hat_star - theta_hat)/s_theta_hat_star)
+}
+```
+
+This function will calculate the values $\hat{theta}$, $S_{\hat{\theta}}$, and $T_i^*$ when given a bootstrapped sample.
+
+Now 1000 bootstrapped samples are calculated:
+
+```{r}
+boot_strapped_data <- matrix(data = sample(x = data, size = 20*1000, replace = TRUE),
+                             ncol = 20, byrow = TRUE)
+```
+
+Now the statistics are calculated:
+
+```{r}
+boot_statistics <- matrix(apply(X = boot_strapped_data, MARGIN = 1, 
+                                FUN = statistic_generator, theta_hat = theta_hat), 
+                          ncol = 1, byrow = TRUE)
+```
+
+Now we can calcuate the 95% confidence interval using the 2.5th and 97.5th percentiles of the "t-statistics":
+
+```{r}
+sorted_t_statistics <- sort(boot_statistics[, 1])
+lower_limit <- theta_hat - sorted_t_statistics[1000*0.975] * s_theta_hat; lower_limit
+upper_limit <- theta_hat - sorted_t_statistics[1000*0.025] * s_theta_hat; upper_limit
+```
+
+Now we can try to run this same method 100 times in order to approximate the true coverage probability of this method.
+
+```{r}
+results_vector <- rep(0, 100)
+confidence_width <- rep(0, 100)
+
+for(i in 1:100){
+  boot_strapped_data <- matrix(data = sample(x = data, size = 20*1000, replace = TRUE),
+                               ncol = 20, byrow = TRUE)
+
+  boot_statistics <- matrix(apply(X = boot_strapped_data, MARGIN = 1, 
+                                FUN = statistic_generator, theta_hat = theta_hat), 
+                            ncol = 1, byrow = TRUE)
+  
+  sorted_t_statistics <- sort(boot_statistics[, 1])
+  lower_limit <- theta_hat - sorted_t_statistics[1000*0.975] * s_theta_hat; lower_limit
+  upper_limit <- theta_hat - sorted_t_statistics[1000*0.025] * s_theta_hat; upper_limit
+  
+  results_vector[i] <- ((lambda < upper_limit) && (lambda > lower_limit))
+  confidence_width[i] <- upper_limit - lower_limit
+}
+```
+
+Out of 100 simulations, $`r sum(results_vector)`$ contained the true value of lambda.  The average confidence interval with was $`r mean(confidence_width)`$
+
+# Method 2
+This method creates a confidence interval instead for the value $1/\lambda$ directly, in otherwords, $\hat{\theta} = \overline{x}$.  At the end, the confidence interval is transformed into a confidence interval for $\lambda$
+
+
+```{r}
+# Values for original sample
+theta_hat2 <- mean(data); theta_hat2
+s_theta_hat2 <- sd(data) / sqrt(length(data)); s_theta_hat2
+```
+
+Now we can bootstrap 1000 samples from this data.  First, this is the function that will be used to generate the "t-statistic" for each bootstrapped sample:
+
+```{r}
+# Function to calculate statistics
+statistic_generator2 <- function(x, theta_hat2){
+  theta_hat_star <- mean(x)
+  s_theta_hat_star <- sd(x) / sqrt(length(x))
+  return((theta_hat_star - theta_hat2)/s_theta_hat_star)
+}
+```
+
+So that the comparison is more equivalent, the same bootstrapped data will be used.  Or course new "t-statistics" need to be calculated however.
+
+```{r}
+boot_statistics2 <- matrix(apply(X = boot_strapped_data, MARGIN = 1, 
+                                FUN = statistic_generator2, theta_hat = theta_hat2), 
+                          ncol = 1, byrow = TRUE)
+```
+
+Now we can calcuate the 95% confidence interval using the 2.5th and 97.5th percentiles of the "t-statistics":
+
+```{r}
+sorted_t_statistics2 <- sort(boot_statistics2[, 1])
+lower_limit2 <- theta_hat2 - sorted_t_statistics2[1000*0.975] * s_theta_hat2; lower_limit2
+upper_limit2 <- theta_hat2 - sorted_t_statistics2[1000*0.025] * s_theta_hat2; upper_limit2
+```
+
+These lower and upper limits are for the value of $1 / \lambda$.
+
+Now we can try to run this same method 100 times in order to approximate the true coverage probability of this method.
+
+```{r}
+results_vector2 <- rep(0, 100)
+confidence_width2 <- rep(0, 100)
+
+for(i in 1:100){
+  boot_strapped_data <- matrix(data = sample(x = data, size = 20*1000, replace = TRUE),
+                               ncol = 20, byrow = TRUE)
+
+  boot_statistics <- matrix(apply(X = boot_strapped_data, MARGIN = 1, 
+                                FUN = statistic_generator2, theta_hat = theta_hat2), 
+                            ncol = 1, byrow = TRUE)
+  
+  sorted_t_statistics <- sort(boot_statistics[, 1])
+  upper_limit <- 1 / (theta_hat2 - sorted_t_statistics[1000*0.975] * s_theta_hat2)
+  lower_limit <- 1 / (theta_hat2 - sorted_t_statistics[1000*0.025] * s_theta_hat2)
+  
+  results_vector2[i] <- ((lambda < upper_limit) && (lambda > lower_limit))
+  confidence_width2[i] <- upper_limit - lower_limit
+}
+```
+
+Out of 100 simulations, $`r sum(results_vector2)`$ contained the true value of lambda.  The average confidence interval with was $`r mean(confidence_width2)`$  
+
+This method also had good performance but the confidence intervals were much wider on average.
