@@ -189,7 +189,7 @@ for(i in 1:500){
     m_mu2_hat <- sum((1 - z_hat) * sample) / sum(1 - z_hat)
     m_sig1_hat <- sqrt(sum(z_hat * (sample - mu1_hat)^2) / sum(z_hat))
     m_sig2_hat <- sqrt(sum((1 - z_hat) * (sample - mu2_hat)^2) / sum(1 - z_hat))
-    m_weight <- sum(z_hat) / 500
+    m_weight <- sum(z_hat) / 100
     
     # Stopping condition
     if(abs(mu1_hat - m_mu1_hat) < 0.01){
@@ -230,7 +230,7 @@ plot(density(results$mu1), main = expression(paste("Distribution of ", hat(mu[1]
 
 $\smallskip$
 
-We see that the algorithm totally fails to detect that the true value was -1.  We can also look at how much variablility there was in the estimates by looking at the distribution of the "z-scores" that was defined earlier.
+We see that the algorithm does a fairly good job estimating $\mu_1$.  The mode of the distribution is around -1, and the left tail is heavy.  The reason for this is that the other component of the mixture is to the right of this component. The plot below is of the "z-scores" of the estimates:
 
 $\smallskip$
 
@@ -240,7 +240,7 @@ plot(density(results$z1), main = expression(paste("Distribution of ", z[1])))
 
 $\smallskip$
 
-This distribution looks very similar to the distribution of $\hat{\mu_1}$.  In fact this is the same plot shifted by 2.
+This distribution looks very similar to the distribution of $\hat{\mu_1}$.  The mode is at zero which shows that most of the time, the estimate was approximately correct.
 
 ## Estimate of $\mu_2$
 
@@ -254,7 +254,7 @@ plot(density(results$mu2), main = expression(paste("Distribution of ", hat(mu[2]
 
 $\smallskip$
 
-We see that the algorithm also fails to detect that the true mean is 2.  The plot below shows a distribution of the the "z-scores" for the estimates.  Most of the estimates were underestimates by about 1.
+The algorithm does a fairly good job estimating $\mu_2$.  The estimates do not go below 1.4 because the other component of the distribution is in that direction.
 
 $\smallskip$
 
@@ -268,19 +268,18 @@ Again, this distribution looks very similar to the distribution of $\hat{\mu_2}$
 
 ## Estimate of the proportion
 
-Before looking at the estiamtes for the standard deviations, the estimates for the proportions can be analyzed.  The true value is 0.30.  Below is the distribution of the proportion estiamtes:
+The distribution of the estimates for the proportions can be analyzed.  The true value is 0.30 (and 0.70).  Below is the distribution of the proportion estiamtes:
 
 $\smallskip$
 
 ```{r echo=FALSE}
 hist(results$prop, main = expression(paste("Distribution of ", hat(w))), 
-     breaks = seq(0, 0.07, by = 0.01),
-     xlim = c(0, 0.07), xlab = "Proportion")
+     xlab = "Proportion")
 ```
 
 $\smallskip$
 
-With the particular initial guesses that were used and the particular true values that were used, it seems the the algorithm outputs that approximately zero of the weight is placed on the first component of the mixture and that approximately all of the values are being generated from the second component of the mixture.  This is probably due to the fact that only approximately 30% of the values are being generated from the first mixture component, and this component is very close to the second component.   
+With the particular initial guesses that were used and the particular true values that were used, it seems the the algorithm tends to output a fairly good approximation of the true proportion.  Since the first component has a less weight, it makes sense that this distribution has a heavier left tail.  In some runs of the algorithm, it has a hard time recognizing that points from the first component in fact came from the first component.   
 
 ## Distribution of number of iterations
 
@@ -289,27 +288,29 @@ Below is a histogram of the number of iterations needed for the algorithm to con
 $\smallskip$
 
 ```{r echo=FALSE}
-hist(results$iterations, main = "Distribution of number of iterations", xlab = "Iterations")
+hist(results$iterations, 
+     main = "Distribution of number of iterations", 
+     xlab = "Iterations")
 ```
 
 $\smallskip$
 
-The majority of trials required less than 30 iterations in order to converge.  
+The majority of trials required less than 60 iterations in order to converge.  
 
 # Conclusion
 
 Repeating the algorithm 500 times, the average values of the estimates across all 500 trials were:  
 
-|Value                        |Mean Estimate|
-|:----------------------------|------------:|
-|$\overline{\hat{\mu_1}}$     |   -4.6289319|
-|$\overline{\hat{\mu_2}}$     |    1.2261107|
-|$\overline{\hat{\sigma_1}}$  |    0.2783892|
-|$\overline{\hat{\sigma_2}}$  |    1.7644620|
-|$\overline{\hat{w}}$         |    0.0052167|
-|Iterations                   |   13.2160000|
+|Value                        |Mean Estimate |
+|:----------------------------|-------------:|
+|$\overline{\hat{\mu_1}}$     |   -1.40389701|
+|$\overline{\hat{\mu_2}}$     |    1.91890118|
+|$\overline{\hat{\sigma_1}}$  |    1.74920379|
+|$\overline{\hat{\sigma_2}}$  |    1.06406263|
+|$\overline{\hat{w}}$         |    0.25533168|
+|Iterations                   |    22.286    |
 
-Due to the two mixture components being somewhat near each other and due to the component with the larger variance also being the component with the smaller weight or proportion, the EM algorithm estimated its mean to be further to the left than its true value and vastly underestimated its weight.  There are other possible ways to test and analyze the EM algorithm, but this example in this report shows what occurs when the two components are too close to each other and the weight of one component is much less than the other.  The EM algorithm is not easily able to give good approximations for the true values.  If the mixtures were far apart from one another, the algorithm would have a more successful outcome.
+Overall over 500 runs of the algorithm, the average performance was very satisfactory.  Estimates for $\mu_1$ tended to be underestimates while estimates for $\mu_2$ tended to be close to the correct value of 2.  There are a lot of questions that remain to be answered however.  For example, what characteristics did the trials that took a long time to converge have?  Did the trials that took a long time to converge have good estimates or bad estimates?  It would also be expected that the closer the two mixture components are to each other, the worse the algorithm would perform, but this could be investigated by simulations to actually demonstrate.
 
 # Appendix
 
@@ -361,7 +362,7 @@ for(i in 1:500){
     m_mu2_hat <- sum((1 - z_hat) * sample) / sum(1 - z_hat)
     m_sig1_hat <- sqrt(sum(z_hat * (sample - mu1_hat)^2) / sum(z_hat))
     m_sig2_hat <- sqrt(sum((1 - z_hat) * (sample - mu2_hat)^2) / sum(1 - z_hat))
-    m_weight <- sum(z_hat) / 500
+    m_weight <- sum(z_hat) / 100
     
     # Stopping condition
     if(abs(mu1_hat - m_mu1_hat) < 0.01){
@@ -383,4 +384,3 @@ for(i in 1:500){
   }
 }
 ```
-
