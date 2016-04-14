@@ -37,9 +37,10 @@ $$
 In order to perform this sampling, a random number will be sampled from the binomial distribution with parameters $n=100$ and $p=0.30$.  This value will be used to determine how many values are sampled from $N(-1, 2)$.  The rest of the values will then be sampled from $N(2, 1)$.  Sampling from a normal distribution with any parameters is easy in the *R* language using a built in function.  The code below generates the data:
 
 ```{r}
-# Mixture weights and total sample size
+# Mixture weights, seed, and total sample size
 proportion <- 0.30
 sample_size <- 100
+set.seed(1234)
 
 # Means and standard deviations
 mu_1 <- -1; mu_2 <- 2
@@ -114,7 +115,7 @@ $$
 $$
 
 $$
-\hat{\sigma_1^2} = \frac{\sum \hat{z_i} (x_i - \hat{\mu_1})^2}{\sum \hat{z_i}} \mbox{  and   } \hat{\sigma_2^2} = \frac{\sum (1 - \hat{z_i}) (x_i - \hat{\mu_1})^2}{\sum (1 - \hat{z_i})}
+\hat{\sigma_1^2} = \frac{\sum \hat{z_i} (x_i - \hat{\mu_1})^2}{\sum \hat{z_i}} \mbox{  and   } \hat{\sigma_2^2} = \frac{\sum (1 - \hat{z_i}) (x_i - \hat{\mu_2})^2}{\sum (1 - \hat{z_i})}
 $$
 
 $$
@@ -122,7 +123,7 @@ $$
 $$
 
 Written more explictily, the steps are:  
-1) Initialize the five unknown paramater values  
+1) Initialize the five unknown paramater values with guesses  
 2) Calculate $\hat{z_i}$ for each value  
 3) Calculate new esimates for the five parameters  
 4) Return to step 2 if convergence criteria has not been met   
@@ -130,7 +131,7 @@ Written more explictily, the steps are:
 The algorithm will run until the difference between to successive estimates of $\mu_1$ differ by less than 0.01.  This is an arbitrary convergence criteria but will serve fine for the purpose of this report.
 
 
-# Simulation & Results
+# Simulation
 
 As was partly mentioned earlier in the paper, the EM algorithm will be evaluated by repeatedly generating new random data from the distribution:
 
@@ -138,15 +139,29 @@ $$
 f(x) = (0.30)N(-1, 2) + (0.70)N(2, 1)
 $$
 
-The "z-scores" defined earlier will be calculated each time.  Random data will be generated 500 times and the algorithm allowed to run until reaching its convergence criteria each time.  The initial values for the parameters will be the same in each trial: $\mu_1 = -0.5$, $\mu_2 = 0.5$, $\sigma_1 = 1$, $\sigma_2 = 1$ and $w_1 = 0.5$.  The simulations will be done in *R* by using a loop to repeatedly generate random data, rerun the algorithm, and store the z scores for that trial.  The code below accomplishes this:
+The "z-scores" defined earlier will be calculated each time.  Random data will be generated 500 times and the algorithm allowed to run until reaching its convergence criteria each time.  The initial values for the parameters will be the same in each trial: $\mu_1 = -0.5$, $\mu_2 = 0.5$, $\sigma_1 = 1$, $\sigma_2 = 1$ and $w_1 = 0.5$.  The simulations will be done in *R* by using a loop to repeatedly generate random data, rerun the algorithm, and store the z scores for that trial.  The code in the appendix accomplishes this.
 
-```{r}
-z_scores <- data.frame(z1 = rep(0, 500),
-                       z2 = rep(0, 500))
+$\pagebreak$
 
+```{r echo=FALSE}
+# Keep track of z-scores and number of iterations until convergence
+results <- data.frame(mu1 = rep(0, 500),
+                      mu2 = rep(0, 500),
+                      sigma1 = rep(0, 500),
+                      sigma2 = rep(0, 500),
+                      prop = rep(0, 500),
+                      z1 = rep(0, 500),
+                      z2 = rep(0, 500),
+                      iterations = rep(0, 500))
+
+# Run EM algorithm 500 times on same problem
 for(i in 1:500){
-  # Initial parameter values guesses c(mu_1, mu_2, sigma_1, sigma_2, w1)
-  parameters <- c(-0.5, 0.5, 1, 1, 0.5)
+  # Initial parameter values guesses
+  mu1_hat <- -0.5
+  mu2_hat <- 0.5
+  sig1_hat <- 1
+  sig2_hat <- 1
+  weight <- 0.5
   
   # Calculate how many values will come from each component
   sample1_size <- rbinom(n = 1, size = sample_size, prob = proportion)
@@ -155,14 +170,143 @@ for(i in 1:500){
   # Sample that many values from each respective normal distribution
   sample1 <- rnorm(n = sample1_size, mean = mu_1, sd = sigma_1)
   sample2 <- rnorm(n = sample2_size, mean = mu_2, sd = sigma_2)
+  sample <- c(sample1, sample2)
   
-  #while(TRUE){}
+  # number of iterations
+  iterations <- 0
+  
+  while(TRUE){
+    # increment iterations
+    iterations <- iterations + 1
+    
+    # E step
+    z_hat <- (weight * dnorm(sample, mu1_hat, sig1_hat)) / 
+      ((weight * dnorm(sample, mu1_hat, sig1_hat)) 
+       + (1 - weight) * dnorm(sample, mu2_hat, sig2_hat))
+    
+    # M step
+    m_mu1_hat <- sum(z_hat * sample) / sum(z_hat)
+    m_mu2_hat <- sum((1 - z_hat) * sample) / sum(1 - z_hat)
+    m_sig1_hat <- sqrt(sum(z_hat * (sample - mu1_hat)^2) / sum(z_hat))
+    m_sig2_hat <- sqrt(sum((1 - z_hat) * (sample - mu2_hat)^2) / sum(1 - z_hat))
+    m_weight <- sum(z_hat) / 500
+    
+    # Stopping condition
+    if(abs(mu1_hat - m_mu1_hat) < 0.01){
+      # store values and break loop
+      results$mu1[i] <- m_mu1_hat
+      results$mu2[i] <- m_mu2_hat
+      results$sigma1[i] <- m_sig1_hat
+      results$sigma2[i] <- m_sig2_hat
+      results$prop[i] <- m_weight
+      results$z1[i] <- (m_mu1_hat - mu_1) / sigma_1
+      results$z2[i] <- (m_mu2_hat - mu_2) / sigma_2
+      results$iterations[i] <- iterations
+      break
+    } else{ # update values and continue loop
+      mu1_hat <- m_mu1_hat; mu2_hat <- m_mu2_hat
+      sig1_hat <- m_sig1_hat; sig2_hat <- m_sig2_hat
+      weight <- m_weight
+    }
+  }
 }
-
 ```
 
+Next, the results of the simulation are analyzed.   
+
+# Results
+
+Again, the simulation repeated the EM algorithm 500 times and each time various values were stored.  We can look at these results value by value to understand what occured.  
+
+## Estimate of $\mu_1$
+
+The true value of $\mu_1$ is -1.  The concern with this parameter is that since this distribution is being sampled from with a weight of 0.30 and has a high standard deviation of 2, it can be difficult to detect its true value.  The plot below shows a distribution of the estimates $\hat{mu_1}$:
+
+$\smallskip$
+
+```{r echo=FALSE}
+plot(density(results$mu1), main = expression(paste("Distribution of ", hat(mu[1]))))
+```
+
+$\smallskip$
+
+We see that the algorithm totally fails to detect that the true value was -1.  We can also look at how much variablility there was in the estimates by looking at the distribution of the "z-scores" that was defined earlier.
+
+$\smallskip$
+
+```{r echo=FALSE}
+plot(density(results$z1), main = expression(paste("Distribution of ", z[1])))
+```
+
+$\smallskip$
+
+This distribution looks very similar to the distribution of $\hat{\mu_1}$.  In fact this is the same plot shifted by 2.
+
+## Estimate of $\mu_2$
+
+The true value of $\mu_2$ is 2.  As was mentioned earlier, the concern is that with the parameter values in this example causing a significant overlap between the two distributions, it may be difficult to detect the true parameter values.  The plot below shows a distribution of the estimates $\hat{mu_2}$:
+
+$\smallskip$
+
+```{r echo=FALSE}
+plot(density(results$mu2), main = expression(paste("Distribution of ", hat(mu[2]))))
+```
+
+$\smallskip$
+
+We see that the algorithm also fails to detect that the true mean is 2.  The plot below shows a distribution of the the "z-scores" for the estimates.  Most of the estimates were underestimates by about 1.
+
+$\smallskip$
+
+```{r echo=FALSE}
+plot(density(results$z2), main = expression(paste("Distribution of ", z[2])))
+```
+
+$\smallskip$
+
+Again, this distribution looks very similar to the distribution of $\hat{\mu_2}$.
+
+## Estimate of the proportion
+
+Before looking at the estiamtes for the standard deviations, the estimates for the proportions can be analyzed.  The true value is 0.30.  Below is the distribution of the proportion estiamtes:
+
+$\smallskip$
+
+```{r echo=FALSE}
+hist(results$prop, main = expression(paste("Distribution of ", hat(w))), 
+     breaks = seq(0, 0.07, by = 0.01),
+     xlim = c(0, 0.07), xlab = "Proportion")
+```
+
+$\smallskip$
+
+With the particular initial guesses that were used and the particular true values that were used, it seems the the algorithm outputs that approximately zero of the weight is placed on the first component of the mixture and that approximately all of the values are being generated from the second component of the mixture.  This is probably due to the fact that only approximately 30% of the values are being generated from the first mixture component, and this component is very close to the second component.   
+
+## Distribution of number of iterations
+
+Below is a histogram of the number of iterations needed for the algorithm to converge in the 500 trials:
+
+$\smallskip$
+
+```{r echo=FALSE}
+hist(results$iterations, main = "Distribution of number of iterations", xlab = "Iterations")
+```
+
+$\smallskip$
+
+The majority of trials required less than 30 iterations in order to converge.  
 
 # Conclusion
 
-Plotting the true distribution
+Repeating the algorithm 500 times, the average values of the estimates across all 500 trials were:  
 
+|Value                        |Mean Estimate|
+|:----------------------------|------------:|
+|$\overline{\hat{\mu_1}}$     |   -4.6289319|
+|$\overline{\hat{\mu_2}}$     |    1.2261107|
+|$\overline{\hat{\sigma_1}}$  |    0.2783892|
+|$\overline{\hat{\sigma_2}}$  |    1.7644620|
+|$\overline{\hat{w}}$         |    0.0052167|
+|Iterations                   |   13.2160000|
+
+Due to the two mixture components being somewhat near each other and due to the component with the larger variance also being the component with the smaller weight or proportion, the EM algorithm estimated its mean to be further to the left than its true value and vastly underestimated its weight.  There are other possible ways to test and analyze the EM algorithm, but this example in this report shows what occurs when the two components are too close to each other and the weight of one component is much less than the other.  The EM algorithm is not easily able to give good approximations for the true values.  If the mixtures were far apart from one another, the algorithm would have a more successful outcome.
