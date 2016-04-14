@@ -310,3 +310,77 @@ Repeating the algorithm 500 times, the average values of the estimates across al
 |Iterations                   |   13.2160000|
 
 Due to the two mixture components being somewhat near each other and due to the component with the larger variance also being the component with the smaller weight or proportion, the EM algorithm estimated its mean to be further to the left than its true value and vastly underestimated its weight.  There are other possible ways to test and analyze the EM algorithm, but this example in this report shows what occurs when the two components are too close to each other and the weight of one component is much less than the other.  The EM algorithm is not easily able to give good approximations for the true values.  If the mixtures were far apart from one another, the algorithm would have a more successful outcome.
+
+# Appendix
+
+The code below was used to run the simulation:
+
+```{r eval=FALSE}
+# Keep track of z-scores and number of iterations until convergence
+results <- data.frame(mu1 = rep(0, 500),
+                      mu2 = rep(0, 500),
+                      sigma1 = rep(0, 500),
+                      sigma2 = rep(0, 500),
+                      prop = rep(0, 500),
+                      z1 = rep(0, 500),
+                      z2 = rep(0, 500),
+                      iterations = rep(0, 500))
+
+# Run EM algorithm 500 times on same problem
+for(i in 1:500){
+  # Initial parameter values guesses
+  mu1_hat <- -0.5
+  mu2_hat <- 0.5
+  sig1_hat <- 1
+  sig2_hat <- 1
+  weight <- 0.5
+  
+  # Calculate how many values will come from each component
+  sample1_size <- rbinom(n = 1, size = sample_size, prob = proportion)
+  sample2_size <- sample_size - sample1_size
+
+  # Sample that many values from each respective normal distribution
+  sample1 <- rnorm(n = sample1_size, mean = mu_1, sd = sigma_1)
+  sample2 <- rnorm(n = sample2_size, mean = mu_2, sd = sigma_2)
+  sample <- c(sample1, sample2)
+  
+  # number of iterations
+  iterations <- 0
+  
+  while(TRUE){
+    # increment iterations
+    iterations <- iterations + 1
+    
+    # E step
+    z_hat <- (weight * dnorm(sample, mu1_hat, sig1_hat)) / 
+      ((weight * dnorm(sample, mu1_hat, sig1_hat)) 
+       + (1 - weight) * dnorm(sample, mu2_hat, sig2_hat))
+    
+    # M step
+    m_mu1_hat <- sum(z_hat * sample) / sum(z_hat)
+    m_mu2_hat <- sum((1 - z_hat) * sample) / sum(1 - z_hat)
+    m_sig1_hat <- sqrt(sum(z_hat * (sample - mu1_hat)^2) / sum(z_hat))
+    m_sig2_hat <- sqrt(sum((1 - z_hat) * (sample - mu2_hat)^2) / sum(1 - z_hat))
+    m_weight <- sum(z_hat) / 500
+    
+    # Stopping condition
+    if(abs(mu1_hat - m_mu1_hat) < 0.01){
+      # store values and break loop
+      results$mu1[i] <- m_mu1_hat
+      results$mu2[i] <- m_mu2_hat
+      results$sigma1[i] <- m_sig1_hat
+      results$sigma2[i] <- m_sig2_hat
+      results$prop[i] <- m_weight
+      results$z1[i] <- (m_mu1_hat - mu_1) / sigma_1
+      results$z2[i] <- (m_mu2_hat - mu_2) / sigma_2
+      results$iterations[i] <- iterations
+      break
+    } else{ # update values and continue loop
+      mu1_hat <- m_mu1_hat; mu2_hat <- m_mu2_hat
+      sig1_hat <- m_sig1_hat; sig2_hat <- m_sig2_hat
+      weight <- m_weight
+    }
+  }
+}
+```
+
