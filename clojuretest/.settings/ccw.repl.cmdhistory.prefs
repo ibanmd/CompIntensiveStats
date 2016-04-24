@@ -1,0 +1,2 @@
+cmdhistory=["(foo \\"hello\\")" "(+ true true)" "(int true)" "int" "(int a)" "(int \\\\true)" "(int \#true)" "(int 'true)" "(if true \\"yes\\" \\"no\\")"]
+eclipse.preferences.version=1

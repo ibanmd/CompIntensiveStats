@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="**/*.java" kind="src" output="target/test-classes" path="test"/>
+	<classpathentry including="**/*.java" kind="src" path="src"/>
+	<classpathentry excluding="**/*.java" kind="src" path="resources"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="var" path="M2_REPO/org/clojure/clojure/1.7.0/clojure-1.7.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="classes">
+		<attributes>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/commons-math3-3.6-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/commons-math3-3.6.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
